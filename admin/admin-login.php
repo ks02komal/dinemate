@@ -1,0 +1,235 @@
+<?php
+require_once "../config/db.php";
+require_once "../includes/functions.php";
+session_start();
+
+$error = "";
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+
+$email = sanitize($_POST['email']);
+$password = $_POST['password'];
+
+$stmt = $pdo->prepare("SELECT * FROM users WHERE email = ? AND role='admin'");
+$stmt->execute([$email]);
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if ($user && $password === $user['password']) {
+
+    $_SESSION['user_id'] = $user['user_id'];
+    $_SESSION['role'] = $user['role'];
+
+    header("Location: dashboard.php");
+    exit;
+
+} else {
+    $error = "Invalid admin credentials.";
+}
+
+} else {
+$error = "Admin account not found.";
+}
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>DineMate Admin Login</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+
+body{
+margin:0;
+font-family:'Poppins',sans-serif;
+background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+min-height:100vh;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
+/* Container */
+
+.admin-container{
+width:100%;
+max-width:1050px;
+display:flex;
+border-radius:18px;
+overflow:hidden;
+background:white;
+box-shadow:0 25px 60px rgba(0,0,0,0.35);
+animation:fadeIn 0.8s ease;
+}
+
+@keyframes fadeIn{
+from{opacity:0;transform:translateY(20px);}
+to{opacity:1;transform:translateY(0);}
+}
+
+/* LEFT FORM */
+
+.admin-left{
+flex:1;
+padding:60px;
+}
+
+.admin-left h2{
+font-weight:600;
+margin-bottom:8px;
+}
+
+.admin-left p{
+color:#666;
+margin-bottom:30px;
+}
+
+/* INPUTS */
+
+.form-control{
+border-radius:40px;
+padding:14px 20px;
+border:none;
+background:#f4f4f4;
+transition:0.3s;
+}
+
+.form-control:focus{
+background:white;
+box-shadow:0 0 0 3px #f4b400;
+}
+
+/* BUTTON */
+
+.btn-login{
+background:#f4b400;
+border:none;
+border-radius:40px;
+padding:14px;
+font-weight:600;
+transition:0.3s;
+}
+
+.btn-login:hover{
+background:#e0a800;
+transform:scale(1.03);
+}
+
+/* PASSWORD EYE */
+
+.password-wrapper{
+position:relative;
+}
+
+.eye{
+position:absolute;
+right:18px;
+top:50%;
+transform:translateY(-50%);
+cursor:pointer;
+}
+
+/* RIGHT IMAGE */
+
+.admin-right{
+flex:1;
+background:url("https://images.unsplash.com/photo-1559339352-11d035aa65de") center/cover no-repeat;
+position:relative;
+display:flex;
+align-items:flex-end;
+padding:40px;
+}
+
+.admin-overlay{
+position:absolute;
+inset:0;
+background:rgba(0,0,0,0.6);
+}
+
+.admin-text{
+position:relative;
+color:white;
+z-index:2;
+}
+
+.admin-text h3{
+font-weight:600;
+}
+
+/* ERROR */
+
+.alert{
+border-radius:12px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="admin-container">
+
+<div class="admin-left">
+
+<h2>Admin Login</h2>
+<p>Access the DineMate management dashboard.</p>
+
+<?php if($error): ?>
+<div class="alert alert-danger"><?= $error ?></div>
+<?php endif; ?>
+
+<form method="POST">
+
+<div class="mb-3">
+<input type="email" name="email" class="form-control" placeholder="Admin Email" required>
+</div>
+
+<div class="mb-4 password-wrapper">
+
+<input type="password" name="password" id="password" class="form-control" placeholder="Password" required>
+
+<span class="eye" onclick="togglePassword()">👁</span>
+
+</div>
+
+<button class="btn btn-login w-100">Login</button>
+
+</form>
+
+</div>
+
+
+<div class="admin-right">
+
+<div class="admin-overlay"></div>
+
+<div class="admin-text">
+<h3>DineMate Admin</h3>
+<p>Manage reservations, tables and customers efficiently.</p>
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+function togglePassword(){
+
+const pass=document.getElementById("password");
+
+if(pass.type==="password"){
+pass.type="text";
+}else{
+pass.type="password";
+}
+
+}
+
+</script>
+
+</body>
+</html>
